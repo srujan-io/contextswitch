@@ -8,6 +8,7 @@ from pathlib import Path
 
 
 ENV_FILE = Path(__file__).with_name(".env")
+GEMINI_TIMEOUT_MS = 10_000  # Gemini rejects shorter explicit deadlines.
 
 
 def _load_local_env() -> None:
@@ -56,7 +57,7 @@ def create_gemini_client(settings: Settings | None = None):
     return genai.Client(
         api_key=settings.api_key,
         http_options=types.HttpOptions(
-            timeout=3000,
+            timeout=GEMINI_TIMEOUT_MS,
             retry_options=types.HttpRetryOptions(attempts=1),
         ),
     )

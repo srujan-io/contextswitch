@@ -109,6 +109,10 @@ Committed the initial integration as `a09fc7b` on local `kicad_voicecommands`; a
 
 Created `contextswitch/member3/.venv` and attempted to install `requirements.txt` inside it. The install cannot reach PyPI because DNS resolution is unavailable, so the requirements set could not be installed there. The local environment now has `google-genai` available, but a repeated smoke attempt fails before receiving an HTTP response with DNS `ConnectError`; the user's earlier `ClientError` could not be reproduced while DNS was down. The `.env` exists with a configured key/model (values not logged). Improved the smoke script to report HTTP/status details and sanitized API error messages when available, without printing key material or headers. Ran the full suite in the project venv: **35 tests pass**. Next: restore DNS/network access, install remaining dependencies, and rerun the smoke check to capture the actual API status; live Gemini behavior is still unverified.
 
+### Timeout fix
+
+The user-provided API response identified the actual client error: Gemini rejects the configured 3-second deadline and requires at least 10 seconds. Updated `settings.py` to use `GEMINI_TIMEOUT_MS = 10000` and added a guard test. The suite now passes **36 tests** and the module compiles. The smoke command in this environment still stops at DNS `ConnectError`, so the 10-second request has not been live-verified here.
+
 ## Append format
 
 For each session, append a dated section with: **step**, **code/project change**, **verification/result**, and **next step/blocker**. Keep entries focused on implementation and integration details.

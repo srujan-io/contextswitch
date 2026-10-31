@@ -11,6 +11,7 @@ from pipeline import IntentPipeline, PipelineDecision
 from matcher import MatchResult
 from session_logger import SessionLogger
 from smoke_gemini import _safe_exception_summary
+from settings import GEMINI_TIMEOUT_MS
 
 
 class PhraseFixtureTests(unittest.TestCase):
@@ -222,6 +223,9 @@ class GeminiInterpreterTests(unittest.TestCase):
         self.assertIn("INVALID_ARGUMENT", summary)
         self.assertNotIn("secret-key", summary)
         self.assertIn("URL REDACTED", summary)
+
+    def test_gemini_timeout_meets_api_minimum(self):
+        self.assertGreaterEqual(GEMINI_TIMEOUT_MS, 10_000)
 
 
 class RouterTests(unittest.TestCase):
