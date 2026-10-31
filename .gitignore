@@ -1,0 +1,100 @@
+
+# ==========================================
+# ContextSwitch - .gitignore
+# ==========================================
+
+# Python virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets.json
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+debug.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# Test and coverage outputs
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.tox/
+
+# Recorded camera / audio data
+recordings/
+captures/
+*.wav
+*.mp3
+*.mp4
+*.avi
+
+# Local calibration and runtime data
+calibration/
+*.calibration.json
+runtime/
+*.pid
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Node dependencies (if added later)
+node_modules/
+.next/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Chrome extension packages
+*.crx
+
+# Arduino / Pico generated files
+*.elf
+*.uf2
+*.bin
+*.hex
+*.map
+*.o
+*.d
+
+# Jupyter checkpoints
+.ipynb_checkpoints/

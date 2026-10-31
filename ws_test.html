@@ -1,0 +1,113 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Beyond Touch WebSocket Test</title>
+  <style>
+    body {
+      background: #101827;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 30px;
+    }
+    #status { color: orange; }
+    #cursor {
+      position: fixed;
+      width: 20px;
+      height: 20px;
+      border: 2px solid cyan;
+      background: #00ffff44;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 999;
+      display: none;
+    }
+    #events {
+      margin-top: 20px;
+      background: #1e293b;
+      padding: 15px;
+      border-radius: 10px;
+      height: 280px;
+      overflow-y: auto;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>Beyond Touch — CV WebSocket Test</h1>
+  <p>Status: <span id="status">Connecting...</span></p>
+  <p>Move your finger to control the cyan cursor.</p>
+  <p>Pinch your fingers to test click detection.</p>
+
+  <div id="cursor"></div>
+  <div id="events"></div>
+
+  <script>
+    const status = document.getElementById("status");
+    const cursor = document.getElementById("cursor");
+    const events = document.getElementById("events");
+
+    let socket;
+
+    function log(message) {
+      const line = document.createElement("div");
+      line.textContent = message;
+      events.prepend(line);
+
+      while (events.children.length > 30) {
+        events.lastChild.remove();
+      }
+    }
+
+    function connect() {
+      socket = new WebSocket("ws://127.0.0.1:8000/ws/cv");
+
+      socket.onopen = () => {
+        status.textContent = "CONNECTED";
+        status.style.color = "#4ade80";
+        log("WebSocket connected");
+      };
+
+      socket.onmessage = (message) => {
+        const event = JSON.parse(message.data);
+        const { source, action, parameters = {} } = event;
+
+        if (action === "CURSOR_MOVE") {
+          cursor.style.display = "block";
+          cursor.style.left =
+            (parameters.x * window.innerWidth - 10) + "px";
+          cursor.style.top =
+            (parameters.y * window.innerHeight - 10) + "px";
+        } else {
+          log(`${source}: ${action}`);
+
+          if (action === "PINCH_START") {
+            cursor.style.background = "#4ade80";
+          }
+
+          if (action === "PINCH_END") {
+            cursor.style.background = "#00ffff44";
+          }
+
+          if (action === "TRACKING_LOST" && source === "HAND") {
+            cursor.style.display = "none";
+          }
+        }
+      };
+
+      socket.onclose = () => {
+        status.textContent = "DISCONNECTED";
+        status.style.color = "#f87171";
+        log("Connection closed. Retrying...");
+        setTimeout(connect, 2000);
+      };
+
+      socket.onerror = () => {
+        log("WebSocket error");
+      };
+    }
+
+    connect();
+  </script>
+</body>
+</html>
