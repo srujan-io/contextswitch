@@ -116,3 +116,11 @@ The user-provided API response identified the initial client error: Gemini rejec
 ## Append format
 
 For each session, append a dated section with: **step**, **code/project change**, **verification/result**, and **next step/blocker**. Keep entries focused on implementation and integration details.
+
+
+## 2026-10-31 — Gemini model selection
+
+Changed the Member 3 Gemini default, `.env.example`, and existing ignored `.env` model setting (when present) to `gemini-3.5-flash-lite`. Google’s current Gemini API model catalog lists this exact endpoint as Gemini 3.5 Flash-Lite; it does not list a `gemini-3.5-flash` endpoint. The model change leaves the 30-second client timeout and the `GEMINI_MODEL` override behavior intact. No API key values were read into the log or changed.
+
+**Verification:** Static diff review only; tests and live API request were not run in this step.
+**Next step/blocker:** Run `python3 smoke_gemini.py` from `contextswitch/member3/` when network access is available, then use `python3 -m unittest -v` for the suite if you want full verification.

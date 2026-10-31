@@ -40,7 +40,7 @@ def load_settings() -> Settings:
     _load_local_env()
     return Settings(
         api_key=os.environ.get("GEMINI_API_KEY"),
-        model=os.environ.get("GEMINI_MODEL", "gemini-3.8-flash"),
+        model=os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite"),
         embedding_model=os.environ.get("FASTEMBED_MODEL", "BAAI/bge-small-en-v1.5"),
     )
 
