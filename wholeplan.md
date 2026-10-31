@@ -95,6 +95,7 @@ Deliver speech-to-text and deterministic routing for simple commands, a shared t
 | 2026-10-31 | First showcase target set to KiCad based on `kicad.md`. Added KiCad action parsing and context validation to the mock router, documented the vocabulary and data-grounding constraints, and expanded verification. All 11 tests pass; real viewer/netlist/BOM integration remains. |
 | 2026-10-31 | Added push-to-talk capture and timestamped voice-event routing in `member3/voice_input.py`; all 12 tests pass. Live capture currently requires PyAudio, which is missing here (Homebrew PortAudio is present). Speech transcription uses the Google Web Speech endpoint and requires network access. |
 | 2026-10-31 | Expanded KiCad command phrase patterns and normalized component references with spoken gaps/separators (`J 108`, `J-108`, `J_108` → `J108`). Added variant fixtures and verified all 12 test methods pass in both source and local repository copy. |
+| 2026-10-31 | Added the Gemini/embedding pipeline, resolver, KiCad ground truth/catalog, labeled phrases, confirmation-gated candidate handling, calibration script, and JSONL session logging. All 34 mocked tests pass. `.env` is ignored and key remains local. Dependency installation/live API/calibration could not complete because package/Gemini DNS is unavailable; thresholds remain unset and real KiCad actions remain mock-only. |
 
 ### Append entries here
 

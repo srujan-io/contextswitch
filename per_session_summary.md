@@ -69,6 +69,38 @@ Added a test that sends a transcribed KiCad command through the router and check
 
 Added natural variants for component locate/explain, sheet navigation, signal tracing, checklist display/progress, troubleshooting, and section navigation. Component references accept embedded spaces, hyphens, and underscores and are canonicalized (e.g. `J 108`, `J-108`, and `J_108` become `J108`). Added fixture and parameter-extraction cases. All 12 test methods pass in both the working tree and local `contextswitch/member3` copy. Parser remains deterministic; it does not use sentence embeddings.
 
+## 2026-10-31 — Gemini + embedding pipeline stages
+
+### Stage 0 — Credential and SDK setup
+
+Added `contextswitch/.gitignore` before copying the uploaded local key into `member3/.env`; verified that path is ignored and that Git history contains no commit for the key file path. `settings.py` is the only runtime environment loader. Configured the current stable Flash model from official Google documentation. Attempted dependency installation in the project virtual environment; package index DNS is unavailable, so `google-genai`, `fastembed`, and `python-dotenv` are not installed here. The smoke command now fails safely without printing exception details or credentials.
+
+### Stage 1 — KiCad ground truth and action catalog
+
+Added `data/kicad_ground_truth.json`, `data/catalogs/kicad.json`, and 90 labeled examples (10 per KiCad action plus negatives). Entries are based only on `kicad.md`; there was no actual schematic/BOM/netlist available to cross-check details.
+
+### Stage 2 — Resolver
+
+Added `resolver.py` for known refs/synonyms, `J 108` and spoken homophone forms, conservative fuzzy resolution, placeholder templating, unknown-target failures, and the `J108`/USB descriptor contradiction check. Added tests including `J999` and `go to sleep`.
+
+### Stage 3 — Sentence matcher and calibration
+
+Added a FastEmbed adapter, in-memory catalog vector priming, cosine ranking, score/margin gates, labeled dataset, and `calibrate_matcher.py`. The threshold and margin remain null with `calibrated=false`; the script could not be run because FastEmbed/model downloads are blocked by DNS. The matcher therefore cannot auto-accept uncalibrated scores.
+
+### Stage 4 — Gemini interpreter
+
+Added structured candidate generation via the Google GenAI SDK, with active-catalog enum, transcript evidence checks, resolver-grounded arguments, ambiguity handling, a small cache, and API failure fallback. Mocked tests reject hallucinated target values/actions and test candidate validation. A live API call could not run because package installation/network access is unavailable.
+
+### Stage 5 — Router orchestration
+
+Integrated fast control commands, resolve/match/Gemini stages, one expiring confirmation proposal, local `yes` handling, pause cancellation, and final revalidation through `dispatch()`. Gemini candidates do not execute directly.
+
+### Stage 6 — Per-utterance logging
+
+Added local JSONL logging for transcript, template, match scores, escalation trigger, Gemini candidates, and final result; log directory is Git-ignored. The logger does not record API credentials or prompts.
+
+**Verification:** `python3 -m unittest -v` from `contextswitch/member3/`: **34 tests pass**. Python syntax compilation passes. Live Gemini and FastEmbed calibration remain blocked until dependencies/network are available. Real KiCad UI actions also remain behind the mock executor.
+
 ## Append format
 
 For each session, append a dated section with: **step**, **code/project change**, **verification/result**, and **next step/blocker**. Keep entries focused on implementation and integration details.

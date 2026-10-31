@@ -88,7 +88,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--once", action="store_true", help="Run one microphone capture and exit")
     args = parser.parse_args(argv)
 
-    router = ActionRouter()
+    try:
+        from pipeline import build_default_pipeline
+        from session_logger import SessionLogger
+        intent_pipeline = build_default_pipeline()
+        router = ActionRouter(intent_pipeline=intent_pipeline, resolver=intent_pipeline.resolver,
+                              session_logger=SessionLogger())
+    except Exception:
+        # Keep push-to-talk and deterministic global commands available even
+        # when local AI dependencies are not installed.
+        router = ActionRouter()
     while True:
         try:
             input("Press Enter to talk (Ctrl+C to quit): ")
