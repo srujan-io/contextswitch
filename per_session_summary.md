@@ -124,3 +124,17 @@ Changed the Member 3 Gemini default, `.env.example`, and existing ignored `.env`
 
 **Verification:** Static diff review only; tests and live API request were not run in this step.
 **Next step/blocker:** Run `python3 smoke_gemini.py` from `contextswitch/member3/` when network access is available, then use `python3 -m unittest -v` for the suite if you want full verification.
+
+## 2026-10-31 — Deterministic KiCad command routing
+
+Updated `member3/actions.py` so a KiCad command recognized by `parse_intent()` is resolved from its complete transcript and dispatched before the embedding/Gemini pipeline. Unknown, unresolved, or contradictory targets now return a deterministic failure instead of escalating to Gemini. This preserves target validation while allowing recognized commands such as `where is J106` to skip the uncalibrated matcher.
+
+**Verification:** Reviewed the patch and `git diff --check`; automated tests and live voice/API checks were not run.
+**Next step/blocker:** Run the Member 3 test suite and try `where is J106`, `locate J106`, `where is J999`, and the contradictory phrase `locate J108, the USB connector` through typed input or the voice demo.
+
+## 2026-11-01 — Unmatched voice command escalation
+
+Updated router fallback behavior so transcripts without a deterministic regex action, and recognized actions whose target phrase is unresolved, can proceed to embeddings and Gemini when the intent pipeline is available. Explicit unknown component references and ambiguous targets remain blocked. Changed `voice_input.py` to stop with a clear startup error instead of silently launching a pattern-only router when pipeline initialization fails, and print a readiness message when semantic routing is attached. This prevents unmatched voice commands from being rejected by a hidden fallback and makes the active route visible.
+
+**Verification:** `git diff --check` only; automated and live voice tests were not run.
+**Next step/blocker:** Start the KiCad voice demo and try an unmatched phrase. If startup reports a pipeline initialization failure, resolve the displayed dependency/configuration issue before testing semantic fallback.

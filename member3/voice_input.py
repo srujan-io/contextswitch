@@ -94,10 +94,17 @@ def main(argv: list[str] | None = None) -> int:
         intent_pipeline = build_default_pipeline()
         router = ActionRouter(intent_pipeline=intent_pipeline, resolver=intent_pipeline.resolver,
                               session_logger=SessionLogger())
-    except Exception:
-        # Keep push-to-talk and deterministic global commands available even
-        # when local AI dependencies are not installed.
-        router = ActionRouter()
+        print("KiCad intent pipeline initialized; unmatched commands will use semantic routing.")
+    except Exception as exc:
+        # Do not silently start in pattern-only mode: unmatched KiCad commands
+        # must reach the embedding/Gemini pipeline to be interpreted.
+        print(
+            "Could not initialize the KiCad intent pipeline "
+            f"({type(exc).__name__}). Check Member 3 dependencies and data/config files; "
+            "voice input was not started in pattern-only mode.",
+            file=sys.stderr,
+        )
+        return 1
     while True:
         try:
             input("Press Enter to talk (Ctrl+C to quit): ")

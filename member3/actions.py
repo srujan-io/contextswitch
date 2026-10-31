@@ -220,6 +220,32 @@ class ActionRouter:
         kind, action_name, parameters = parse_intent(text)
         fast_actions = {"SCROLL_UP", "SCROLL_DOWN", "NEXT_PANEL", "PREVIOUS_PANEL",
                         "NEXT_SECTION", "PREVIOUS_SECTION", "PAUSE", "RESUME"}
+        # Resolve deterministic KiCad commands from the whole transcript first.
+        # This safely dispatches known targets without AI and catches
+        # contradictory descriptors (for example, "J108 USB connector").
+        kicad_actions = {
+            name for name, rule in ACTION_RULES.items()
+            if "KICAD_SCHEMATIC" in rule["sites"] and name not in fast_actions
+        }
+        if kind == "simple" and action_name in kicad_actions and self.resolver:
+            from resolver import parameters_for_action
+
+            resolved_parameters, resolution_error = parameters_for_action(action_name, text, self.resolver)
+            if resolution_error or resolved_parameters is None:
+                reason = resolution_error or "UNRESOLVED_ENTITY"
+                if reason in {"UNKNOWN_TARGET", "AMBIGUOUS"}:
+                    message = ("Command refers to an unknown target" if reason == "UNKNOWN_TARGET"
+                               else "Command target is ambiguous")
+                    return asdict(ActionResult("ACTION_RESULT", request_id or str(uuid4()), False,
+                                               message, reason))
+                # The action pattern may be clear even if this phrase for the
+                # target is unfamiliar. Let semantic matching try before giving up.
+            else:
+                self.last_pipeline_details = {"source": "REGEX", "parsed_action": action_name}
+                return self.dispatch(Action("ACTION", "VOICE", action_name, profile,
+                                            resolved_parameters, request_id or str(uuid4())), site_type)
+        # A missing regex match leaves action_name as None, which deliberately
+        # falls through to the semantic pipeline instead of being rejected here.
         if self.intent_pipeline is not None and action_name not in fast_actions:
             decision = self.intent_pipeline.decide(text, profile, site_type)
             self.last_pipeline_details = dict(decision.details or {})
