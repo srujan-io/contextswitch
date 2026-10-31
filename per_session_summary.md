@@ -101,9 +101,13 @@ Added local JSONL logging for transcript, template, match scores, escalation tri
 
 **Verification:** `python3 -m unittest -v` from `contextswitch/member3/`: **34 tests pass**. Python syntax compilation passes. Live Gemini and FastEmbed calibration remain blocked until dependencies/network are available. Real KiCad UI actions also remain behind the mock executor.
 
-### Latest branch state
+### Branch state after initial pipeline integration
 
-Committed the integration as `a09fc7b` on local `kicad_voicecommands`; the branch is two commits ahead of `origin`. `git push` was attempted and failed because this environment could not resolve `github.com`. No `.env` file was staged.
+Committed the initial integration as `a09fc7b` on local `kicad_voicecommands`; at that point the branch was two commits ahead of `origin`. A push attempt failed because this environment could not resolve `github.com`. No `.env` file was staged.
+
+## 2026-10-31 — Gemini smoke check troubleshooting
+
+Created `contextswitch/member3/.venv` and attempted to install `requirements.txt` inside it. The install cannot reach PyPI because DNS resolution is unavailable, so dependencies were not installed. Reproduced `smoke_gemini.py`: it fails at setup because `google-genai` is missing; `.env` exists and contains a configured key/model (values not logged). Improved the smoke script to identify SDK setup, Gemini request, and embedding/model-download failure stages without printing key material or SDK exception details. Ran the full suite with the new venv: **34 tests pass**. Next: restore package-host access, install dependencies, then rerun `smoke_gemini.py`; live Gemini behavior is still unverified.
 
 ## Append format
 
