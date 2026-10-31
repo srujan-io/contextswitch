@@ -34,15 +34,68 @@ class Settings:
     api_key: str | None
     model: str
     embedding_model: str
+    voice_thresholds_calibrated: bool = False
+    voice_noise_baseline_rms: float | None = None
+    voice_noise_low_max_ratio: float | None = None
+    voice_noise_med_max_ratio: float | None = None
+    voice_noise_enter_ratio: float | None = None
+    voice_noise_exit_ratio: float | None = None
+    voice_status_min_dwell_seconds: float = 5.0
+    voice_asr_failure_window: int = 5
+    voice_asr_failures_to_uncertain: int = 2
+    voice_clean_utterances_to_recover: int = 2
+
+
+def _env_float(name: str, default: float | None) -> float | None:
+    raw = os.environ.get(name)
+    if raw is None or not raw.strip():
+        return default
+    try:
+        return float(raw)
+    except ValueError as exc:
+        raise RuntimeError(f"{name} must be a number") from exc
+
+
+def _env_int(name: str, default: int) -> int:
+    raw = os.environ.get(name)
+    if raw is None or not raw.strip():
+        return default
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise RuntimeError(f"{name} must be an integer") from exc
+    if value < 1:
+        raise RuntimeError(f"{name} must be at least 1")
+    return value
 
 
 def load_settings() -> Settings:
     _load_local_env()
-    return Settings(
+    noise_baseline = _env_float("VOICE_NOISE_BASELINE_RMS", None)
+    settings = Settings(
         api_key=os.environ.get("GEMINI_API_KEY"),
         model=os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite"),
         embedding_model=os.environ.get("FASTEMBED_MODEL", "BAAI/bge-small-en-v1.5"),
+        voice_thresholds_calibrated=os.environ.get("VOICE_THRESHOLDS_CALIBRATED", "false").strip().lower() == "true",
+        voice_noise_baseline_rms=noise_baseline,
+        voice_noise_low_max_ratio=_env_float("VOICE_NOISE_LOW_MAX_RATIO", None),
+        voice_noise_med_max_ratio=_env_float("VOICE_NOISE_MED_MAX_RATIO", None),
+        voice_noise_enter_ratio=_env_float("VOICE_NOISE_ENTER_RATIO", None),
+        voice_noise_exit_ratio=_env_float("VOICE_NOISE_EXIT_RATIO", None),
+        voice_status_min_dwell_seconds=float(_env_float("VOICE_STATUS_MIN_DWELL_SECONDS", 5.0)),
+        voice_asr_failure_window=_env_int("VOICE_ASR_FAILURE_WINDOW", 5),
+        voice_asr_failures_to_uncertain=_env_int("VOICE_ASR_FAILURES_TO_UNCERTAIN", 2),
+        voice_clean_utterances_to_recover=_env_int("VOICE_CLEAN_UTTERANCES_TO_RECOVER", 2),
     )
+    if settings.voice_status_min_dwell_seconds <= 0:
+        raise RuntimeError("VOICE_STATUS_MIN_DWELL_SECONDS must be greater than zero")
+    if settings.voice_asr_failure_window < 2 or settings.voice_asr_failures_to_uncertain < 2:
+        raise RuntimeError("ASR uncertainty requires a window and failure threshold of at least 2")
+    if settings.voice_asr_failures_to_uncertain > settings.voice_asr_failure_window:
+        raise RuntimeError("VOICE_ASR_FAILURES_TO_UNCERTAIN cannot exceed VOICE_ASR_FAILURE_WINDOW")
+    if settings.voice_clean_utterances_to_recover < 2:
+        raise RuntimeError("VOICE_CLEAN_UTTERANCES_TO_RECOVER must be at least 2")
+    return settings
 
 
 def create_gemini_client(settings: Settings | None = None):

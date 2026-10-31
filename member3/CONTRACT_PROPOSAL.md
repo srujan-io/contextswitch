@@ -54,3 +54,13 @@ KiCad component explanations and signal tracing must use schematic/netlist data.
 ## Voice event proposal
 
 Emit recognized speech as `{"type":"VOICE_EVENT","text":"...","status":"TRANSCRIBED"}` with a timestamp once transport is agreed. The local router handles clear low-risk phrases deterministically. Complex requests are forwarded to the planner; ambiguous and unrecognized requests are not executed.
+
+## Voice health status event
+
+The voice process emits a `STATUS` event at startup, whenever its status metadata changes, and as a heartbeat every five seconds:
+
+```json
+{"source":"VOICE","type":"STATUS","text":"","timestamp":0,"metadata":{"quality":"GOOD","noise_level":"UNKNOWN","noise_ratio":null,"failure_count_in_window":0,"reason":"STARTING"}}
+```
+
+`quality` is `GOOD`, `UNCERTAIN`, or `UNAVAILABLE`. `noise_level` is `LOW`, `MED`, `HIGH`, or `UNKNOWN`. Noise remains `UNKNOWN` with a null ratio until a quiet-room RMS baseline and bucket thresholds are manually calibrated and `VOICE_THRESHOLDS_CALIBRATED=true`. The failure count is the number of failed ASR attempts in the configured recent-attempt window; it does not include microphone failures. An individual unrecognized utterance does not by itself change `GOOD` to `UNCERTAIN`. The voice process also appends these status events to `data/logs/voice_status.jsonl` so status history is retained during ASR outages.
