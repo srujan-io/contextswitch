@@ -30,16 +30,16 @@ Ran `python3 -m unittest -v` from `member3/`. The first run found punctuation no
 
 ## Current implementation boundary
 
-- Implemented: typed text input, deterministic routing, proposed action schema, local fake execution/result path, profile/site/action validation, pause/resume, deduplication, and submission approval check.
-- Not yet implemented: microphone speech-to-text, timestamped/transported voice events, WebSocket fake extension client, real browser DOM actions, or teammate contract integration.
-- The first showcase now targets KiCad. The parser supports the voice workflows in `kicad.md`, but demo-specific viewer/data integration is still pending.
+- Implemented: push-to-talk text routing, deterministic fast controls, KiCad target resolver, local sentence-embedding matcher, Gemini candidate interpreter, confirmation state, profile/site/entity validation, pause/resume, deduplication, and JSONL diagnostics.
+- Still blocked/unverified: third-party dependency installation and live Gemini/embedding calls; score thresholds are intentionally uncalibrated; real KiCad viewer actions still use the mock executor.
+- The local API key is stored only in ignored `contextswitch/member3/.env`; no key value is logged or committed.
 
 ## Next code steps
 
-1. Add a small CLI/text boundary around the router for repeatable local demos.
-2. Add timestamped standardized voice events while preserving deterministic handling of simple commands.
-3. Add a fake extension WebSocket client/result loop once the backend transport choice is set (or keep it transport-neutral until then).
-4. Sync the proposed schema/action names with Members 2 and 4 before binding to shared endpoints.
+1. Restore package/API network access, install `member3/requirements.txt`, and run `smoke_gemini.py`.
+2. Run `calibrate_matcher.py` with the actual FastEmbed model; set thresholds only if the labeled calibration set has zero wrong accepts.
+3. Replace `MockExecutor` with the agreed KiCad viewer adapter and verify one real component/sheet action.
+4. Push the two local branch commits after GitHub DNS/auth is available.
 
 ## 2026-10-31 — KiCad showcase action mapping
 
@@ -100,6 +100,10 @@ Integrated fast control commands, resolve/match/Gemini stages, one expiring conf
 Added local JSONL logging for transcript, template, match scores, escalation trigger, Gemini candidates, and final result; log directory is Git-ignored. The logger does not record API credentials or prompts.
 
 **Verification:** `python3 -m unittest -v` from `contextswitch/member3/`: **34 tests pass**. Python syntax compilation passes. Live Gemini and FastEmbed calibration remain blocked until dependencies/network are available. Real KiCad UI actions also remain behind the mock executor.
+
+### Latest branch state
+
+Committed the integration as `a09fc7b` on local `kicad_voicecommands`; the branch is two commits ahead of `origin`. `git push` was attempted and failed because this environment could not resolve `github.com`. No `.env` file was staged.
 
 ## Append format
 
