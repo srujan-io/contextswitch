@@ -1,0 +1,1 @@
+SpeechRecognition[audio]>=3.10,<4
