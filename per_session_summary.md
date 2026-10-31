@@ -107,7 +107,7 @@ Committed the initial integration as `a09fc7b` on local `kicad_voicecommands`; a
 
 ## 2026-10-31 — Gemini smoke check troubleshooting
 
-Created `contextswitch/member3/.venv` and attempted to install `requirements.txt` inside it. The install cannot reach PyPI because DNS resolution is unavailable, so dependencies were not installed. Reproduced `smoke_gemini.py`: it fails at setup because `google-genai` is missing; `.env` exists and contains a configured key/model (values not logged). Improved the smoke script to identify SDK setup, Gemini request, and embedding/model-download failure stages without printing key material or SDK exception details. Ran the full suite with the new venv: **34 tests pass**. Next: restore package-host access, install dependencies, then rerun `smoke_gemini.py`; live Gemini behavior is still unverified.
+Created `contextswitch/member3/.venv` and attempted to install `requirements.txt` inside it. The install cannot reach PyPI because DNS resolution is unavailable, so the requirements set could not be installed there. The local environment now has `google-genai` available, but a repeated smoke attempt fails before receiving an HTTP response with DNS `ConnectError`; the user's earlier `ClientError` could not be reproduced while DNS was down. The `.env` exists with a configured key/model (values not logged). Improved the smoke script to report HTTP/status details and sanitized API error messages when available, without printing key material or headers. Ran the full suite in the project venv: **35 tests pass**. Next: restore DNS/network access, install remaining dependencies, and rerun the smoke check to capture the actual API status; live Gemini behavior is still unverified.
 
 ## Append format
 

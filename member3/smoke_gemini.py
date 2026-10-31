@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+import re
 
 from matcher import FastEmbedEncoder
 from settings import create_gemini_client, load_settings
@@ -39,8 +40,7 @@ def main() -> int:
         )
         print("Gemini smoke response:", (getattr(response, "text", "") or "").strip())
     except Exception as exc:
-        # SDK/network exceptions may contain request details; never print them.
-        print(f"Gemini request failed ({type(exc).__name__}); check network, key access, and model availability.", file=sys.stderr)
+        print("Gemini request failed:", _safe_exception_summary(exc, settings.api_key), file=sys.stderr)
         return 1
     try:
         encoder = FastEmbedEncoder(settings.embedding_model)
@@ -56,6 +56,29 @@ def main() -> int:
     finally:
         if client is not None:
             client.close()
+
+
+def _safe_exception_summary(exc: Exception, api_key: str | None) -> str:
+    """Expose actionable API errors without printing credentials or headers."""
+    parts = [type(exc).__name__]
+    response = getattr(exc, "response", None)
+    code = getattr(exc, "code", None) or getattr(exc, "status_code", None)
+    if code is None and response is not None:
+        code = getattr(response, "status_code", None)
+    status = getattr(exc, "status", None)
+    if code is not None:
+        parts.append(f"HTTP {code}")
+    if status and str(status) not in parts:
+        parts.append(str(status))
+    detail = str(getattr(exc, "message", None) or exc)
+    if api_key:
+        detail = detail.replace(api_key, "[REDACTED]")
+    detail = re.sub(r"AIza[0-9A-Za-z_-]{20,}", "[REDACTED_KEY]", detail)
+    detail = re.sub(r"https?://\S+", "[URL REDACTED]", detail)
+    detail = re.sub(r"(?im)^.*(?:authorization|x-goog-api-key|api[_ -]?key).*$", "[CREDENTIAL DETAIL REDACTED]", detail)
+    detail = re.sub(r"(?i)(?:key|api_key)\s*[=:]\s*[^,\s}]+", "key=[REDACTED]", detail)
+    detail = " ".join(detail.split())[:500]
+    return " — ".join(parts) + (f": {detail}" if detail else "")
 
 
 if __name__ == "__main__":

@@ -10,6 +10,7 @@ from interpreter import GeminiInterpreter, Interpretation
 from pipeline import IntentPipeline, PipelineDecision
 from matcher import MatchResult
 from session_logger import SessionLogger
+from smoke_gemini import _safe_exception_summary
 
 
 class PhraseFixtureTests(unittest.TestCase):
@@ -210,6 +211,17 @@ class GeminiInterpreterTests(unittest.TestCase):
         result = interpreter.interpret("take me to J108", "KICAD_SCHEMATIC", "PCB_WEB", "LOW_SCORE")
         self.assertEqual(result.status, "UNAVAILABLE")
         self.assertEqual(interpreter.client.models.calls, 1)
+
+    def test_smoke_error_details_include_status_but_redact_key_and_url(self):
+        class ApiError(Exception):
+            code = 400
+            status = "INVALID_ARGUMENT"
+            message = "bad request https://example.test/path?key=secret-key"
+        summary = _safe_exception_summary(ApiError(), "secret-key")
+        self.assertIn("HTTP 400", summary)
+        self.assertIn("INVALID_ARGUMENT", summary)
+        self.assertNotIn("secret-key", summary)
+        self.assertIn("URL REDACTED", summary)
 
 
 class RouterTests(unittest.TestCase):
