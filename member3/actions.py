@@ -65,6 +65,17 @@ def classify(text: str) -> tuple[str, str | None]:
     return kind, name
 
 
+_COMPONENT_REF = r"(?:tp|[rcj])\s*[-_]?\s*\d{2,4}[a-z]?"
+
+
+def canonical_component_ref(reference: str) -> str | None:
+    """Join common ASR gaps and separators inside a KiCad reference only."""
+    compact = re.sub(r"[\s_-]+", "", reference).upper()
+    if re.fullmatch(r"(?:TP|[RCJ])\d{2,4}[A-Z]?", compact):
+        return compact
+    return None
+
+
 def parse_intent(text: str) -> tuple[str, str | None, dict[str, Any]]:
     """Classify a transcript and extract typed arguments for supported commands."""
     value = normalize(text)
@@ -73,22 +84,29 @@ def parse_intent(text: str) -> tuple[str, str | None, dict[str, Any]]:
                "previous panel": "PREVIOUS_PANEL", "go to previous panel": "PREVIOUS_PANEL"}
     if value in primary:
         return "simple", primary[value], {}
-    # KiCad showcase commands. References and named targets are validated again
-    # by the router against the active profile/site before dispatch.
+    # More than one natural phrase maps to each supported KiCad intent. Keep
+    # identifier normalization local to references; don't rewrite normal text.
     patterns = [
-        (r"(?:locate|find|focus on)\s+(?:component\s+)?([a-z]+\d+[a-z]?)(?:\s+.*)?", "LOCATE_COMPONENT", "component_ref"),
-        (r"(?:what does|explain|purpose of|what is the purpose of|what's the purpose of|what is)\s+([a-z]+\d+[a-z]?)(?:\s+(?:do|used for))?", "EXPLAIN_COMPONENT", "component_ref"),
-        (r"trace\s+(?:the\s+)?(.+?)(?:\s+connections?)?$", "TRACE_SIGNAL", "signal_name"),
-        (r"(?:open|go to|navigate to)\s+(?:the\s+)?(.+?)(?:\s+sheet)?$", "OPEN_SHEET", "sheet_id"),
-        (r"(?:i am|i'm) assembling the\s+(.+?)(?:\s+section)?$", "SHOW_ASSEMBLY_CHECKLIST", "section_id"),
-        (r"mark\s+([a-z]+\d+[a-z]?)\s+(?:as\s+)?complete", "MARK_COMPONENT_COMPLETE", "component_ref"),
-        (r"(?:my board isn't|my board is not|troubleshoot)\s+(.+)$", "GUIDE_TROUBLESHOOTING", "issue"),
-        (r"show me the\s+(.+?)\s+section", "SHOW_SCHEMATIC_SECTION", "section_id"),
+        (rf"(?:locate|find|where is|where's|show me|focus on|take me to)\s+(?:the\s+)?(?:component\s+)?({_COMPONENT_REF})(?:\s+.*)?", "LOCATE_COMPONENT", "component_ref"),
+        (rf"(?:what does|explain|describe|tell me about|what is the purpose of|what's the purpose of|purpose of|what is)\s+({_COMPONENT_REF})(?:\s+(?:do|used for))?", "EXPLAIN_COMPONENT", "component_ref"),
+        (rf"(?:mark|set)\s+({_COMPONENT_REF})\s+(?:as\s+)?(?:complete|done)|(?:check off|complete|finish)\s+({_COMPONENT_REF})", "MARK_COMPONENT_COMPLETE", "component_ref"),
+        (r"(?:trace|follow|track)\s+(?:the\s+)?(.+?)(?:\s+(?:signal|net|connections?))?$", "TRACE_SIGNAL", "signal_name"),
+        (r"(?:open|go to|navigate to|switch to|show sheet)\s+(?:the\s+)?(.+?)(?:\s+sheet)?$", "OPEN_SHEET", "sheet_id"),
+        (r"(?:i am|i'm|i am currently) assembling (?:the\s+)?(.+?)(?:\s+section)?$", "SHOW_ASSEMBLY_CHECKLIST", "section_id"),
+        (r"(?:show|open|display) (?:the\s+)?(?:assembly )?checklist for (?:the\s+)?(.+?)(?:\s+section)?$", "SHOW_ASSEMBLY_CHECKLIST", "section_id"),
+        (r"(?:my board (?:isn't|is not|won't|will not)|i (?:can't|cannot|am having trouble|have trouble)\s+with|troubleshoot|help me troubleshoot|help diagnose)\s+(.+)$", "GUIDE_TROUBLESHOOTING", "issue"),
+        (r"(?:show me|show|open|display|focus on)\s+(?:the\s+)?(.+?)\s+(?:section|area|part)$", "SHOW_SCHEMATIC_SECTION", "section_id"),
     ]
     for pattern, action, parameter in patterns:
         match = re.fullmatch(pattern, value)
         if match:
-            argument = match.group(1).strip().upper()
+            captured = next((group for group in match.groups() if group), "")
+            argument = captured.strip().upper()
+            if parameter == "component_ref":
+                canonical = canonical_component_ref(captured)
+                if not canonical:
+                    continue
+                argument = canonical
             if parameter == "sheet_id":
                 aliases = {
                     "THE 3 3 VOLT REGULATOR": "2_5Vto3.3VRegulator",
@@ -106,7 +124,9 @@ def parse_intent(text: str) -> tuple[str, str | None, dict[str, Any]]:
         if "USB" in signal:
             signal = "USB_P, USB_N"
         return "simple", "TRACE_SIGNAL", {"signal_name": signal}
-    if value in {"return to the main schematic", "return to main schematic", "go back to the main schematic"}:
+    if value in {"return to the main schematic", "return to main schematic", "go back to the main schematic",
+                 "go back to main schematic", "return to root schematic", "back to the root schematic",
+                 "open the main schematic", "take me back to the main schematic"}:
         return "simple", "RETURN_MAIN_SHEET", {}
     exact = {
         "scroll down": "SCROLL_DOWN", "scroll down please": "SCROLL_DOWN", "page down": "SCROLL_DOWN",

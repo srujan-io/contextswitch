@@ -11,7 +11,7 @@
 
 ## KiCad showcase actions
 
-The initial KiCad voice list is represented by `LOCATE_COMPONENT`, `EXPLAIN_COMPONENT`, `TRACE_SIGNAL`, `OPEN_SHEET`, `RETURN_MAIN_SHEET`, `SHOW_ASSEMBLY_CHECKLIST`, `MARK_COMPONENT_COMPLETE`, `GUIDE_TROUBLESHOOTING`, and `SHOW_SCHEMATIC_SECTION`. These require profile `PCB_WEB` and site type `KICAD_SCHEMATIC`. The parser extracts values such as `J106`, `USB_P, USB_N`, and the canonical SAMD21 sheet ID. The current executor remains a mock; real focus/navigation, netlist tracing, grounded explanations, and checklist persistence still need a KiCad viewer/data adapter.
+The initial KiCad voice list is represented by `LOCATE_COMPONENT`, `EXPLAIN_COMPONENT`, `TRACE_SIGNAL`, `OPEN_SHEET`, `RETURN_MAIN_SHEET`, `SHOW_ASSEMBLY_CHECKLIST`, `MARK_COMPONENT_COMPLETE`, `GUIDE_TROUBLESHOOTING`, and `SHOW_SCHEMATIC_SECTION`. These require profile `PCB_WEB` and site type `KICAD_SCHEMATIC`. Multiple common phrases map to each intent (for example, “where is,” “find,” or “show me” map to component location). Component references are normalized locally, so `J 108`, `J-108`, and `J108` become `J108`. The parser extracts values such as `J106`, `USB_P, USB_N`, and the canonical SAMD21 sheet ID. The current executor remains a mock; real focus/navigation, netlist tracing, grounded explanations, and checklist persistence still need a KiCad viewer/data adapter.
 
 ## Chronological command flow
 

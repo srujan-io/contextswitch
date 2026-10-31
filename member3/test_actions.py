@@ -67,11 +67,22 @@ class RouterTests(unittest.TestCase):
     def test_kicad_voice_commands_produce_typed_actions(self):
         cases = [
             ("Locate J106, the USB connector", "LOCATE_COMPONENT", {"component_ref": "J106"}),
+            ("Where is J108", "LOCATE_COMPONENT", {"component_ref": "J108"}),
+            ("Find J 108", "LOCATE_COMPONENT", {"component_ref": "J108"}),
+            ("Show me the J-108 connector", "LOCATE_COMPONENT", {"component_ref": "J108"}),
+            ("Take me to J_108", "LOCATE_COMPONENT", {"component_ref": "J108"}),
             ("Where do USB D+ and D− go", "TRACE_SIGNAL", {"signal_name": "USB_P, USB_N"}),
             ("What's the purpose of R101", "EXPLAIN_COMPONENT", {"component_ref": "R101"}),
+            ("Tell me about C 101", "EXPLAIN_COMPONENT", {"component_ref": "C101"}),
+            ("Follow the I2C connections", "TRACE_SIGNAL", {"signal_name": "I2C"}),
             ("Open the 3.3-volt regulator", "OPEN_SHEET", {"sheet_id": "2_5Vto3.3VRegulator"}),
             ("Go to the SAMD21", "OPEN_SHEET", {"sheet_id": "3_uC_SAMD21"}),
+            ("Switch to the SAMD21 sheet", "OPEN_SHEET", {"sheet_id": "3_uC_SAMD21"}),
             ("I'm assembling the USB section", "SHOW_ASSEMBLY_CHECKLIST", {"section_id": "USB"}),
+            ("Show assembly checklist for USB section", "SHOW_ASSEMBLY_CHECKLIST", {"section_id": "USB"}),
+            ("Check off C101", "MARK_COMPONENT_COMPLETE", {"component_ref": "C101"}),
+            ("My board won't communicate over USB", "GUIDE_TROUBLESHOOTING", {"issue": "COMMUNICATE OVER USB"}),
+            ("Display the USB area", "SHOW_SCHEMATIC_SECTION", {"section_id": "USB"}),
         ]
         for phrase, expected_action, expected_parameters in cases:
             with self.subTest(phrase=phrase):

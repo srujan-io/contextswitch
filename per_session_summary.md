@@ -65,6 +65,10 @@ Added `member3/voice_input.py` with a push-to-talk microphone capture, ambient-n
 
 Added a test that sends a transcribed KiCad command through the router and checks the event timestamp and typed action. `python3 -m unittest -v` passes **12 tests**. Live microphone check reports `UNAVAILABLE`: SpeechRecognition is present, but PyAudio is missing in this environment. PortAudio is installed via Homebrew; install the declared Python audio dependency and grant microphone access to use capture. Recognition uses the Google Web Speech endpoint, so the transcript step requires network access and sends recorded audio to that service. Typed commands remain usable without it.
 
+## 2026-10-31 — Expanded KiCad phrase matching
+
+Added natural variants for component locate/explain, sheet navigation, signal tracing, checklist display/progress, troubleshooting, and section navigation. Component references accept embedded spaces, hyphens, and underscores and are canonicalized (e.g. `J 108`, `J-108`, and `J_108` become `J108`). Added fixture and parameter-extraction cases. All 12 test methods pass in both the working tree and local `contextswitch/member3` copy. Parser remains deterministic; it does not use sentence embeddings.
+
 ## Append format
 
 For each session, append a dated section with: **step**, **code/project change**, **verification/result**, and **next step/blocker**. Keep entries focused on implementation and integration details.

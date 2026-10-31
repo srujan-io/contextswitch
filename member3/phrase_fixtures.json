@@ -23,5 +23,16 @@
   {"text": "I'm assembling the USB section", "expected": ["simple", "SHOW_ASSEMBLY_CHECKLIST"]},
   {"text": "Mark C101 complete", "expected": ["simple", "MARK_COMPONENT_COMPLETE"]},
   {"text": "My board isn't communicating over USB", "expected": ["simple", "GUIDE_TROUBLESHOOTING"]},
-  {"text": "Show me the USB section", "expected": ["simple", "SHOW_SCHEMATIC_SECTION"]}
+  {"text": "Show me the USB section", "expected": ["simple", "SHOW_SCHEMATIC_SECTION"]},
+  {"text": "Where is J108", "expected": ["simple", "LOCATE_COMPONENT"]},
+  {"text": "Find J 108", "expected": ["simple", "LOCATE_COMPONENT"]},
+  {"text": "Show me the J-108 connector", "expected": ["simple", "LOCATE_COMPONENT"]},
+  {"text": "Take me to J_108", "expected": ["simple", "LOCATE_COMPONENT"]},
+  {"text": "Tell me about C 101", "expected": ["simple", "EXPLAIN_COMPONENT"]},
+  {"text": "Follow the I2C connections", "expected": ["simple", "TRACE_SIGNAL"]},
+  {"text": "Switch to the SAMD21 sheet", "expected": ["simple", "OPEN_SHEET"]},
+  {"text": "Show assembly checklist for USB section", "expected": ["simple", "SHOW_ASSEMBLY_CHECKLIST"]},
+  {"text": "Check off C101", "expected": ["simple", "MARK_COMPONENT_COMPLETE"]},
+  {"text": "My board won't communicate over USB", "expected": ["simple", "GUIDE_TROUBLESHOOTING"]},
+  {"text": "Display the USB area", "expected": ["simple", "SHOW_SCHEMATIC_SECTION"]}
 ]
