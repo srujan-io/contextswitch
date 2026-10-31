@@ -89,7 +89,7 @@ def listen_once(profile: str, site_type: str, language: str = "en-US",
         monitor.record_asr_failure("ASR_UNRECOGNIZED")
         return _status("UNCERTAIN", "Speech was not clear enough to transcribe", monitor)
     except sr.RequestError as exc:
-        monitor.record_asr_failure("ASR_NETWORK_ERROR")
+        monitor.record_asr_failure("ASR_NETWORK_ERROR", count_toward_uncertain=False)
         return _unavailable("Speech recognition service is unavailable; you can type a command or retry.", exc, monitor)
 
     return process_transcript(router or ActionRouter(), transcript, profile, site_type,

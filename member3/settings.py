@@ -41,6 +41,7 @@ class Settings:
     voice_noise_enter_ratio: float | None = None
     voice_noise_exit_ratio: float | None = None
     voice_status_min_dwell_seconds: float = 5.0
+    voice_status_heartbeat_seconds: float = 15.0
     voice_asr_failure_window: int = 5
     voice_asr_failures_to_uncertain: int = 2
     voice_clean_utterances_to_recover: int = 2
@@ -83,12 +84,15 @@ def load_settings() -> Settings:
         voice_noise_enter_ratio=_env_float("VOICE_NOISE_ENTER_RATIO", None),
         voice_noise_exit_ratio=_env_float("VOICE_NOISE_EXIT_RATIO", None),
         voice_status_min_dwell_seconds=float(_env_float("VOICE_STATUS_MIN_DWELL_SECONDS", 5.0)),
+        voice_status_heartbeat_seconds=float(_env_float("VOICE_STATUS_HEARTBEAT_SECONDS", 15.0)),
         voice_asr_failure_window=_env_int("VOICE_ASR_FAILURE_WINDOW", 5),
         voice_asr_failures_to_uncertain=_env_int("VOICE_ASR_FAILURES_TO_UNCERTAIN", 2),
         voice_clean_utterances_to_recover=_env_int("VOICE_CLEAN_UTTERANCES_TO_RECOVER", 2),
     )
     if settings.voice_status_min_dwell_seconds <= 0:
         raise RuntimeError("VOICE_STATUS_MIN_DWELL_SECONDS must be greater than zero")
+    if settings.voice_status_heartbeat_seconds <= 0:
+        raise RuntimeError("VOICE_STATUS_HEARTBEAT_SECONDS must be greater than zero")
     if settings.voice_asr_failure_window < 2 or settings.voice_asr_failures_to_uncertain < 2:
         raise RuntimeError("ASR uncertainty requires a window and failure threshold of at least 2")
     if settings.voice_asr_failures_to_uncertain > settings.voice_asr_failure_window:

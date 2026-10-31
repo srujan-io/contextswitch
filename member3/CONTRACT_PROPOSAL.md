@@ -57,10 +57,10 @@ Emit recognized speech as `{"type":"VOICE_EVENT","text":"...","status":"TRANSCRI
 
 ## Voice health status event
 
-The voice process emits a `STATUS` event at startup, whenever its status metadata changes, and as a heartbeat every five seconds:
+The voice process emits a `STATUS` event at startup, whenever its status metadata changes, and as a heartbeat every fifteen seconds by default. Before the first utterance, the reason is `NO_UTTERANCE_YET`:
 
 ```json
-{"source":"VOICE","type":"STATUS","text":"","timestamp":0,"metadata":{"quality":"GOOD","noise_level":"UNKNOWN","noise_ratio":null,"failure_count_in_window":0,"reason":"STARTING"}}
+{"source":"VOICE","type":"STATUS","text":"","timestamp":0,"metadata":{"quality":"GOOD","noise_level":"UNKNOWN","noise_ratio":null,"failure_count_in_window":0,"reason":"NO_UTTERANCE_YET"}}
 ```
 
-`quality` is `GOOD`, `UNCERTAIN`, or `UNAVAILABLE`. `noise_level` is `LOW`, `MED`, `HIGH`, or `UNKNOWN`. Noise remains `UNKNOWN` with a null ratio until a quiet-room RMS baseline and bucket thresholds are manually calibrated and `VOICE_THRESHOLDS_CALIBRATED=true`. The failure count is the number of failed ASR attempts in the configured recent-attempt window; it does not include microphone failures. An individual unrecognized utterance does not by itself change `GOOD` to `UNCERTAIN`. The voice process also appends these status events to `data/logs/voice_status.jsonl` so status history is retained during ASR outages.
+`quality` is `GOOD`, `UNCERTAIN`, or `UNAVAILABLE`. `noise_level` is `LOW`, `MED`, `HIGH`, or `UNKNOWN`. Noise remains `UNKNOWN` with a null ratio until a quiet-room RMS baseline and bucket thresholds are manually calibrated and `VOICE_THRESHOLDS_CALIBRATED=true`. The failure count is the number of failed speech attempts in the configured recent-attempt window; it does not include microphone failures or ASR service/network errors. An individual unrecognized utterance does not by itself change `GOOD` to `UNCERTAIN`. The voice process also appends these status events to `data/logs/voice_status.jsonl` so status history is retained during ASR outages. Transport to the shared backend remains pending agreement; current delivery is stdout plus this local JSONL log.

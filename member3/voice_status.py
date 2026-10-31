@@ -23,7 +23,7 @@ class VoiceStatusMonitor:
         self.noise_level = "UNKNOWN"
         self.noise_ratio: float | None = None
         self.failure_count_in_window = 0
-        self.reason = "STARTING"
+        self.reason = "NO_UTTERANCE_YET"
         self._outcomes: deque[bool] = deque(maxlen=settings.voice_asr_failure_window)
         self._clean_utterances = 0
         self._pending_uncertain_since: float | None = None
@@ -77,10 +77,12 @@ class VoiceStatusMonitor:
             self._evaluate_locked(time.monotonic())
         self._publish()
 
-    def record_asr_failure(self, reason: str, *, unavailable: bool = False) -> None:
+    def record_asr_failure(self, reason: str, *, unavailable: bool = False,
+                           count_toward_uncertain: bool = True) -> None:
         with self._lock:
-            self._outcomes.append(True)
-            self._refresh_failure_count_locked()
+            if count_toward_uncertain:
+                self._outcomes.append(True)
+                self._refresh_failure_count_locked()
             self._clean_utterances = 0
             self.reason = reason
             if unavailable:
@@ -185,12 +187,12 @@ class VoiceStatusMonitor:
 
 
 class VoiceStatusReporter:
-    """Emit status changes and 5-second heartbeats to stdout and a local JSONL log."""
+    """Emit status changes and slow heartbeats to stdout and a local JSONL log."""
 
-    def __init__(self, monitor: VoiceStatusMonitor, interval_seconds: float = 5.0,
+    def __init__(self, monitor: VoiceStatusMonitor, interval_seconds: float | None = None,
                  log_path: str | Path | None = None):
         self.monitor = monitor
-        self.interval_seconds = interval_seconds
+        self.interval_seconds = interval_seconds or monitor.settings.voice_status_heartbeat_seconds
         self.log_path = Path(log_path) if log_path else Path(__file__).parent / "data" / "logs" / "voice_status.jsonl"
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
