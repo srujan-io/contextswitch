@@ -111,7 +111,7 @@ Created `contextswitch/member3/.venv` and attempted to install `requirements.txt
 
 ### Timeout fix
 
-The user-provided API response identified the actual client error: Gemini rejects the configured 3-second deadline and requires at least 10 seconds. Updated `settings.py` to use `GEMINI_TIMEOUT_MS = 10000` and added a guard test. The suite now passes **36 tests** and the module compiles. The smoke command in this environment still stops at DNS `ConnectError`, so the 10-second request has not been live-verified here.
+The user-provided API response identified the initial client error: Gemini rejects a 3-second deadline and requires at least 10 seconds. The user then reported HTTP 504 `DEADLINE_EXCEEDED` at 10 seconds, so `settings.py` now uses `GEMINI_TIMEOUT_MS = 30000` to allow for slow/cold requests. The suite passes **36 tests** and the module compiles. A live 30-second request could not be verified from this environment because its own Gemini request stops at DNS `ConnectError`.
 
 ## Append format
 

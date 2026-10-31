@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ENV_FILE = Path(__file__).with_name(".env")
-GEMINI_TIMEOUT_MS = 10_000  # Gemini rejects shorter explicit deadlines.
+GEMINI_TIMEOUT_MS = 30_000  # The API rejected 3s and the service timed out at 10s.
 
 
 def _load_local_env() -> None:
