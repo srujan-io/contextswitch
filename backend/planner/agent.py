@@ -22,12 +22,14 @@ class IntentPlanner:
         api_key = os.getenv("GEMINI_API_KEY")
 
         if not api_key:
-            raise RuntimeError(
-                "GEMINI_API_KEY is missing. "
-                "Check your backend .env file."
+            print(
+                "[PLANNER] Notice: GEMINI_API_KEY is not set. "
+                "Rule-based deterministic planning active. "
+                "Set GEMINI_API_KEY in backend/.env for generative multi-step planning."
             )
-
-        self.client = genai.Client(api_key=api_key)
+            self.client = None
+        else:
+            self.client = genai.Client(api_key=api_key)
 
         self.model = os.getenv(
             "GEMINI_MODEL",
@@ -221,6 +223,37 @@ You are a planner, not an executor.
 """
 
         # 5. Include actual request data in the prompt
+
+        if self.client is None:
+            lower = command.lower()
+            ref = self.extract_component_reference(command)
+            steps = []
+            from .schemas import PlanStep, ActionParameters
+            if ref and any(w in lower for w in ("find", "locate", "search", "show", "where")):
+                steps.append(PlanStep(action="search_component", parameters=ActionParameters(query=ref)))
+            elif "zoom in" in lower:
+                steps.append(PlanStep(action="zoom_in", parameters=ActionParameters()))
+            elif "zoom out" in lower:
+                steps.append(PlanStep(action="zoom_out", parameters=ActionParameters()))
+            elif "pan up" in lower or "scroll up" in lower:
+                steps.append(PlanStep(action="pan", parameters=ActionParameters(direction="up")))
+            elif "pan down" in lower or "scroll down" in lower:
+                steps.append(PlanStep(action="pan", parameters=ActionParameters(direction="down")))
+            elif "pan left" in lower:
+                steps.append(PlanStep(action="pan", parameters=ActionParameters(direction="left")))
+            elif "pan right" in lower:
+                steps.append(PlanStep(action="pan", parameters=ActionParameters(direction="right")))
+            elif ref and "explain" in lower:
+                steps.append(PlanStep(action="view_component_details", parameters=ActionParameters(reference=ref)))
+            else:
+                raise ValueError("GEMINI_API_KEY is not configured in backend/.env for complex planning.")
+
+            plan = ActionPlan(
+                website=website_id,
+                intent=f"Deterministic plan: {command}",
+                steps=steps
+            )
+            return plan.model_dump()
 
         complete_prompt = (
             prompt

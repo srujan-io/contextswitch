@@ -1,0 +1,8 @@
+{
+  "site_type": "KICAD_SCHEMATIC",
+  "embedding_model": "BAAI/bge-small-en-v1.5",
+  "threshold": 0.7145,
+  "margin": 0.1010,
+  "calibrated": true,
+  "calibration_note": "Calibrated with zero wrong accepts on labeled set."
+}

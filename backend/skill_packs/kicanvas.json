@@ -9,7 +9,8 @@
     "pan",
     "select_component",
     "view_component_details",
-    "search_component"
+    "search_component",
+    "trace_signal"
   ],
   "context_elements": [
     "schematic_canvas",

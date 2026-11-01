@@ -1,24 +1,256 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
+  <title>ContextSwitch Lab Assistant</title>
   <style>
-    body { font: 13px Arial, sans-serif; width: 320px; padding: 12px; }
-    h3 { margin: 0 0 10px; }
-    pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f3f4f6; padding: 9px; border-radius: 6px; }
-    .muted { color: #666; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 13px;
+      width: 360px;
+      padding: 16px;
+      background: #f8fafc;
+      color: #0f172a;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e2e8f0;
+      margin-bottom: 14px;
+    }
+
+    .title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0284c7;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #94a3b8;
+    }
+    .dot.green { background: #16a34a; }
+    .dot.amber { background: #d97706; }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+
+    /* Voice PTT */
+    .ptt-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 0;
+    }
+
+    .ptt-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #0284c7;
+      color: white;
+      font-size: 24px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 10px rgba(2, 132, 199, 0.3);
+      transition: all 0.2s;
+    }
+
+    .ptt-btn:hover { background: #0369a1; transform: scale(1.05); }
+    .ptt-btn.listening {
+      background: #dc2626;
+      box-shadow: 0 0 16px rgba(220, 38, 38, 0.5);
+      animation: pulse 1.2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    .ptt-label {
+      margin-top: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #475569;
+    }
+
+    .transcript-view {
+      background: #f1f5f9;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      color: #334155;
+      margin-top: 8px;
+      word-break: break-word;
+    }
+
+    /* Buttons */
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .pill-btn {
+      padding: 6px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #0f172a;
+      transition: all 0.15s;
+    }
+
+    .pill-btn:hover {
+      background: #e0f2fe;
+      border-color: #0284c7;
+      color: #0284c7;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #0284c7;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+    .btn-primary:hover { background: #0369a1; }
+
+    input {
+      width: 100%;
+      padding: 7px 10px;
+      font-size: 13px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      outline: none;
+      margin-top: 4px;
+    }
+    input:focus { border-color: #0284c7; }
+
+    .footer-link {
+      display: block;
+      text-align: center;
+      font-size: 12px;
+      color: #0284c7;
+      font-weight: 600;
+      text-decoration: none;
+      margin-top: 8px;
+      cursor: pointer;
+    }
+    .footer-link:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
-  <h3>Beyond Touch Context</h3>
-  <div id="status" class="muted">Loading active tab context…</div>
-  <form id="search-form">
-    <p><label for="reference">Component reference</label></p>
-    <input id="reference" placeholder="R1" required pattern="[A-Za-z]{1,3}\s*\d+[A-Za-z]?">
-    <button id="search-button" type="submit">Find in KiCanvas</button>
-  </form>
-  <pre id="search-result" aria-live="polite">Open a schematic, enter a reference, and click Find.</pre>
-  <pre id="context">No context received yet.</pre>
+
+  <header>
+    <div class="title">⚡ ContextSwitch</div>
+    <span style="font-size: 11px; font-weight: 600; color: #64748b;">Lab Mode</span>
+  </header>
+
+  <div class="status-row">
+    <div class="badge">
+      <div id="dot-tab" class="dot amber"></div>
+      <span id="tab-status">KiCanvas Tab</span>
+    </div>
+    <div class="badge">
+      <div id="dot-cv" class="dot green"></div>
+      <span id="cv-status">CV Service</span>
+    </div>
+  </div>
+
+  <!-- Voice Push to Talk -->
+  <div class="card">
+    <div class="card-title">🎙️ Push-to-Talk Voice Command</div>
+    <div class="ptt-box">
+      <button id="ptt-btn" class="ptt-btn">🎙️</button>
+      <div id="ptt-text" class="ptt-label">Click to Speak</div>
+    </div>
+    <div id="transcript" class="transcript-view">Say "Locate R1", "Find C4", "Zoom in"...</div>
+  </div>
+
+  <!-- Quick Lab Actions -->
+  <div class="card">
+    <div class="card-title">⚡ Quick Lab Presets</div>
+    <div class="btn-grid">
+      <button class="pill-btn" onclick="sendVoice('locate R1')">🔍 Locate R1</button>
+      <button class="pill-btn" onclick="sendVoice('find C4')">🔍 Find C4</button>
+      <button class="pill-btn" onclick="sendVoice('zoom in')">🔎 Zoom In</button>
+      <button class="pill-btn" onclick="sendVoice('zoom out')">🔍 Zoom Out</button>
+      <button class="pill-btn" onclick="sendVoice('pan left')">⬅️ Pan Left</button>
+      <button class="pill-btn" onclick="sendVoice('pan right')">➡️ Pan Right</button>
+    </div>
+  </div>
+
+  <!-- Manual Component Search Form -->
+  <div class="card">
+    <div class="card-title">🔍 Manual Component Search</div>
+    <form id="search-form">
+      <input id="ref-input" placeholder="e.g. R1, C4, U1, R101" required>
+      <button type="submit" class="btn-primary" id="search-btn">Focus & Zoom in KiCanvas</button>
+    </form>
+  </div>
+
+  <a class="footer-link" id="open-dashboard-link">🖥️ Open Full Lab Dashboard (/demo)</a>
+
   <script src="config.js"></script>
   <script src="popup.js"></script>
 </body>
